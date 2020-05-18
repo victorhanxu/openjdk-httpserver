@@ -1,35 +1,19 @@
-/*
- * #%L
- * ch.vorburger.openshift
- * %%
- * Copyright (C) 2018 - 2018 Michael Vorburger
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
+/* * ch.vorburger.openshift*/
 package ch.vorburger.openshift.s2i.example;
 
 import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.exceptions.JedisConnectionException;
+import java.sql.*;
+import org.json.JSONObject;
 
 /**
  * Simplest possible HTTP Server in Java, without dependencies to any external
  * framework.
- *
  * This is example "how-to" show case server; do NOT use this for real!
- *
  * @author Michael Vorburger.ch
  */
 @SuppressWarnings("restriction")
@@ -40,6 +24,25 @@ public class Server implements AutoCloseable {
     @SuppressWarnings("resource")
     public static void main(String[] args) throws IOException {
         new Server();
+        try {
+            Jedis redis = connectToRedis("redis");
+            Connection dbConn = connectToDB("db");
+
+            System.err.println("Watching vote queue");
+
+            while (true) {
+              String voteJSON = redis.blpop(0, "votes").get(1);
+              JSONObject voteData = new JSONObject(voteJSON);
+              String voterID = voteData.getString("voter_id");
+              String vote = voteData.getString("vote");
+
+              System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
+              updateVote(dbConn, voterID, vote);
+            }
+          } catch (SQLException e) {
+            e.printStackTrace();
+            System.exit(1);
+          }        
     }
 
     private final HttpServer httpServer;
@@ -62,4 +65,78 @@ public class Server implements AutoCloseable {
     public void close() {
         httpServer.stop(0);
     }
+    static void updateVote(Connection dbConn, String voterID, String vote) throws SQLException {
+        PreparedStatement insert = dbConn.prepareStatement(
+          "INSERT INTO votes (id, vote) VALUES (?, ?)");
+        insert.setString(1, voterID);
+        insert.setString(2, vote);
+
+        try {
+          insert.executeUpdate();
+        } catch (SQLException e) {
+          PreparedStatement update = dbConn.prepareStatement(
+            "UPDATE votes SET vote = ? WHERE id = ?");
+          update.setString(1, vote);
+          update.setString(2, voterID);
+          update.executeUpdate();
+        }
+      }
+
+      static Jedis connectToRedis(String host) {
+        Jedis conn = new Jedis(host);
+        conn.auth("redis_password");
+
+        while (true) {
+          try {
+            conn.keys("*");
+            break;
+          } catch (JedisConnectionException e) {
+            e.printStackTrace();
+            System.err.println("Waiting for redis");
+            sleep(1000);
+          }
+        }
+
+        System.err.println("Connected to redis");
+        return conn;
+      }
+
+      static Connection connectToDB(String host) throws SQLException {
+        Connection conn = null;
+
+        try {
+
+          Class.forName("org.postgresql.Driver");
+          String url = "jdbc:postgresql://" + host + "/postgres?user=postgres&password=postgres";
+
+          while (conn == null) {
+            try {
+              conn = DriverManager.getConnection(url, "postgres", "");
+            } catch (SQLException e) {
+              e.printStackTrace();
+              System.err.println("Waiting for db");
+              sleep(1000);
+            }
+          }
+
+          PreparedStatement st = conn.prepareStatement(
+            "CREATE TABLE IF NOT EXISTS votes (id VARCHAR(255) NOT NULL UNIQUE, vote VARCHAR(255) NOT NULL)");
+          st.executeUpdate();
+
+        } catch (ClassNotFoundException e) {
+          e.printStackTrace();
+          System.exit(1);
+        }
+
+        System.err.println("Connected to db");
+        return conn;
+      }
+
+      static void sleep(long duration) {
+        try {
+          Thread.sleep(duration);
+        } catch (InterruptedException e) {
+          System.exit(1);
+        }
+      }    
 }
