@@ -23,6 +23,7 @@ public class Server implements AutoCloseable {
 
     @SuppressWarnings("resource")
     public static void main(String[] args) throws IOException {
+    	System.out.println("\n***********Server main() starting**************\n");
         new Server();
         try {
             Jedis redis = connectToRedis("redis");
@@ -31,13 +32,15 @@ public class Server implements AutoCloseable {
             System.err.println("Watching vote queue");
 
             while (true) {
-              String voteJSON = redis.blpop(0, "votes").get(1);
-              JSONObject voteData = new JSONObject(voteJSON);
-              String voterID = voteData.getString("voter_id");
-              String vote = voteData.getString("vote");
-
-              System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
-              updateVote(dbConn, voterID, vote);
+              System.out.println("\n***********Server starting**************\n");
+			  String voteJSON = redis.blpop(0, "votes").get(1);
+			  JSONObject voteData = new JSONObject(voteJSON);
+			  String voterID = voteData.getString("voter_id");
+			  String vote = voteData.getString("vote");
+			  System.out.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
+			
+			  System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
+			  updateVote(dbConn, voterID, vote);
             }
           } catch (SQLException e) {
             e.printStackTrace();
@@ -48,6 +51,7 @@ public class Server implements AutoCloseable {
     private final HttpServer httpServer;
 
     public Server() throws IOException {
+    	System.out.println("\n***********Server starting**************\n");
         int port = 8080;
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.createContext("/", exchange -> {
