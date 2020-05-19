@@ -52,7 +52,7 @@
               </descriptorRefs>
               <archive>
                 <manifest>
-                  <mainClass>worker.Worker</mainClass>
+                  <mainClass>ch.vorburger.openshift.s2i.example.Server</mainClass>
                 </manifest>
               </archive>
             </configuration>
