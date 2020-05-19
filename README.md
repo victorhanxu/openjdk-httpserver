@@ -1,3 +1,5 @@
+Tested - OpenJDK, a simple http server.-V
+
 # s2i-java-example
 
 This S2I example is intentionally NOT using Spring Boot, Vert.x, Dropwizard, Wildfly Swarm or whatever other simple "fat JAR" (non-WAR/EAR) Java
