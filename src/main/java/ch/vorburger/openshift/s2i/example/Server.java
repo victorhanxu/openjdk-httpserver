@@ -39,6 +39,7 @@ public class Server implements AutoCloseable {
 
     @SuppressWarnings("resource")
     public static void main(String[] args) throws IOException {
+        System.out.println("\n*********Entered Server mian()");
         new Server();
     }
 
@@ -55,7 +56,7 @@ public class Server implements AutoCloseable {
             os.close();
         });
         httpServer.start();
-        System.out.println("started 'hello, world' web server on http://localhost:" + 8080);
+        System.out.println("\n*********started 'hello, world' web server on http://localhost:" + 8080);
     }
 
     @Override
