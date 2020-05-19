@@ -25,27 +25,23 @@ public class Server implements AutoCloseable {
     public static void main(String[] args) throws IOException {
     	System.out.println("\n***********Server main() starting**************\n");
         new Server();
-        try {
-            Jedis redis = connectToRedis("redis");
-            Connection dbConn = connectToDB("db");
-
-            System.err.println("Watching vote queue");
-
-            while (true) {
-              System.out.println("\n***********Server starting**************\n");
-			  String voteJSON = redis.blpop(0, "votes").get(1);
-			  JSONObject voteData = new JSONObject(voteJSON);
-			  String voterID = voteData.getString("voter_id");
-			  String vote = voteData.getString("vote");
-			  System.out.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
-			
-			  System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
-			  updateVote(dbConn, voterID, vote);
-            }
-          } catch (SQLException e) {
-            e.printStackTrace();
-            System.exit(1);
-          }        
+		/*
+		 * try { Jedis redis = connectToRedis("redis"); Connection dbConn =
+		 * connectToDB("db");
+		 * 
+		 * System.err.println("Watching vote queue");
+		 * 
+		 * while (true) {
+		 * System.out.println("\n***********Server starting**************\n"); String
+		 * voteJSON = redis.blpop(0, "votes").get(1); JSONObject voteData = new
+		 * JSONObject(voteJSON); String voterID = voteData.getString("voter_id"); String
+		 * vote = voteData.getString("vote");
+		 * System.out.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
+		 * 
+		 * System.err.printf("Processing vote for '%s' by '%s'\n", vote, voterID);
+		 * updateVote(dbConn, voterID, vote); } } catch (SQLException e) {
+		 * e.printStackTrace(); System.exit(1); }
+		 */    
     }
 
     private final HttpServer httpServer;
