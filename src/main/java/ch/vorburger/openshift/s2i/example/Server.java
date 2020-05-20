@@ -19,10 +19,11 @@
  */
 package ch.vorburger.openshift.s2i.example;
 
-import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+
+import com.sun.net.httpserver.HttpServer;
 
 /**
  * Simplest possible HTTP Server in Java, without dependencies to any external
@@ -36,11 +37,18 @@ import java.net.InetSocketAddress;
 public class Server implements AutoCloseable {
 
     private static final int HTTP_OK_STATUS = 200;
+    private static int index=0;
 
     @SuppressWarnings("resource")
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("\n*********Entered Server mian()");
         new Server();
+        while (true) {
+        	index ++;
+        	index = index%10000;
+        	Thread.sleep(1000);
+        	System.out.println("index is: "+index);
+        }
     }
 
     private final HttpServer httpServer;
@@ -49,7 +57,7 @@ public class Server implements AutoCloseable {
         int port = 8080;
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.createContext("/", exchange -> {
-            String response = "Hello World, OpenJDK http server example on Openshift.";
+            String response = "Hello World, OpenJDK http server example on Openshift. Print index: "+index;
             exchange.sendResponseHeaders(HTTP_OK_STATUS, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -58,7 +66,8 @@ public class Server implements AutoCloseable {
         httpServer.start();
         System.out.println("\n*********started 'hello, world' web server on http://localhost:" + 8080);
         for (int i=0; i<10; i++) {
-        	System.out.println("Invoke service call --->"+i);
+        	System.out.println("Invoke index --->"+index);
+        	
         }
     }
 
