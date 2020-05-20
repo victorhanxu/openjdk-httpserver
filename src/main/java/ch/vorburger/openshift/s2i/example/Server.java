@@ -43,7 +43,7 @@ public class Server implements AutoCloseable {
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("\n*********Entered Server mian()");
         new Server();
-        while (true) {
+        for (int i =0; i<10; i++) {
         	index ++;
         	index = index%10000;
         	Thread.sleep(1000);
