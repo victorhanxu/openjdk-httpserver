@@ -49,7 +49,7 @@ public class Server implements AutoCloseable {
         int port = 8080;
         httpServer = HttpServer.create(new InetSocketAddress(port), 0);
         httpServer.createContext("/", exchange -> {
-            String response = "hello, world";
+            String response = "Hello, world. This is a OpenJDK Java application from Openshift.";
             exchange.sendResponseHeaders(HTTP_OK_STATUS, response.getBytes().length);
             OutputStream os = exchange.getResponseBody();
             os.write(response.getBytes());
@@ -57,6 +57,9 @@ public class Server implements AutoCloseable {
         });
         httpServer.start();
         System.out.println("\n*********started 'hello, world' web server on http://localhost:" + 8080);
+        for (int i=0; i<10; i++) {
+        	System.out.println("***** i --->"+i);
+        }
     }
 
     @Override
