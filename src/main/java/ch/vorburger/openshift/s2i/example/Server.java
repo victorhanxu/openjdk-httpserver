@@ -57,6 +57,9 @@ public class Server implements AutoCloseable {
         });
         httpServer.start();
         System.out.println("\n*********started 'hello, world' web server on http://localhost:" + 8080);
+        for (int i=0; i<10; i++) {
+        	System.out.println("Invoke service call --->"+i);
+        }
     }
 
     @Override
